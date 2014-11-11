@@ -4,6 +4,10 @@
 /**
  * Created by pman on 04.10.14.
  */
+
+/*
+  Custom docReady implementation
+*/
 (function (funcName, baseObj) {
 
   "use strict";
@@ -78,6 +82,10 @@
     }
   };
 }("docReady", window));
+
+/*
+  Laborant itself implementation
+*/
 
 (function (window, document, docReady) {
   "use strict";
@@ -166,11 +174,8 @@
 
       // checking url for forced experiments in format lab_site_experiment_[name]=[value]
       function getForcedUrlExperiments() {
-        var result = {},
-          param,
-          key,
-          value,
-          tmp,
+        var param, key, value, tmp,
+          result = {},
           urlParams = window.location.search,
           urlParamsArray = urlParams.slice(1, urlParams.length).split("&"),
           li = urlParamsArray.length;
@@ -191,11 +196,15 @@
       // First - start at dom ready
       docReady(function () {
         var error;
-        // console.log("document is ready. Let's start magic");
         // prepare success callback
         function successFunction(data) {
           if (data && data.status === "success") {
             console.log(data);
+            // write propper cookie
+
+            // start executing experiment functions
+
+            // note: all experiment conditions should be set at backend? or not?
           } else {
             error = new Error("Incorrect Laborant API key");
           }
@@ -207,7 +216,7 @@
 
         experiments = getForcedUrlExperiments();
 
-        // get list of all experiments and its variants from server
+        // get list of all experiments and its variants from server, handshake
         context.ajax({
           url: "http://localhost:3000/laborant",
           data: {
@@ -215,24 +224,12 @@
             experiments: experiments
           }
         }, successFunction, errorFunction);
-        // from this point we could run all experiments
       });
 
-      // Third    - check cookies for already setted values
-
-      // Fifth    - send server request with forced and setted parameters
-
-      // Sixth    - process server response and form experiments object
-
-      // Seventh  - iterate over object and run all experiments
-
-      // Finally  - set up tracking and fire events
     }
 
-    // (also need an assert mode, determine response-request formats and so on)
-
     context.hello = function () {
-      // console.log("Hello from laborant!");
+      console.log("Hello from laborant!");
       return true;
     };
 
