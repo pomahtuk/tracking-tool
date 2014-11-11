@@ -1,23 +1,31 @@
+/*jslint browser: true, plusplus: true, indent: 2*/
+/*global window, document, setTimeout, docReady, console*/
+
 /**
  * Created by pman on 04.10.14.
  */
-(function(funcName, baseObj) {
+(function (funcName, baseObj) {
+
+  "use strict";
+
   // The public function name defaults to window.docReady
   // but you can pass in your own object and own function name and those will be used
   // if you want to put them in a different namespace
   funcName = funcName || "docReady";
   baseObj = baseObj || window;
-  var readyList = [];
-  var readyFired = false;
-  var readyEventHandlersInstalled = false;
+  var readyList = [],
+    readyFired = false,
+    readyEventHandlersInstalled = false;
 
   // call this when the document is ready
   // this function protects itself against being called more than once
   function ready() {
+    var i;
+
     if (!readyFired) {
       // this must be set to true before we start calling callbacks
       readyFired = true;
-      for (var i = 0; i < readyList.length; i++) {
+      for (i = 0; i < readyList.length; i++) {
         // if a callback here happens to add new ready handlers,
         // the docReady() function will see that it already fired
         // and will schedule the callback to run right after
@@ -32,7 +40,7 @@
   }
 
   function readyStateChange() {
-    if ( document.readyState === "complete" ) {
+    if (document.readyState === "complete") {
       ready();
     }
   }
@@ -41,11 +49,11 @@
   // docReady(fn, context);
   // the context argument is optional - if present, it will be passed
   // as an argument to the callback
-  baseObj[funcName] = function(callback, context) {
+  baseObj[funcName] = function (callback, context) {
     // if ready has already fired, then just schedule the callback
     // to fire asynchronously, but right away
     if (readyFired) {
-      setTimeout(function() {callback(context);}, 1);
+      setTimeout(function () {callback(context); }, 1);
       return;
     } else {
       // add the function and context to the list
@@ -55,7 +63,7 @@
     if (document.readyState === "complete") {
       setTimeout(ready, 1);
     } else if (!readyEventHandlersInstalled) {
-      // otherwise if we don't have event handlers installed, install them
+      // otherwise if we don"t have event handlers installed, install them
       if (document.addEventListener) {
         // first choice is DOMContentLoaded event
         document.addEventListener("DOMContentLoaded", ready, false);
@@ -68,28 +76,27 @@
       }
       readyEventHandlersInstalled = true;
     }
-  }
-})("docReady", window);
+  };
+}("docReady", window));
 
-(function(window, document, docReady) {
-  'use strict';
+(function (window, document, docReady) {
+  "use strict";
 
-  function AjaxRequester (baseObject, namespace) {
-    'use strict';
+  function ajaxRequester(baseObject, namespace) {
 
     baseObject = baseObject || window;
 
-    function AjaxRequest () {
+    function AjaxRequest() {
 
       function prepareParams(data, prefix) {
-        var resultString = [], value, resKey, resValue;
+        var resultString = [], value, resKey, resValue, dataKey;
 
-        for (var key in data) {
-          if (data.hasOwnProperty(key)) {
-            value = data[key];
-            resValue = typeof value == "function" ? value() : value;
-            resKey = prefix ? prefix + "[" + key + "]" : key;
-            resultString.push(typeof value == "object" ?
+        for (dataKey in data) {
+          if (data.hasOwnProperty(dataKey)) {
+            value = data[dataKey];
+            resValue = typeof value === "function" ? value() : value;
+            resKey = prefix ? prefix + "[" + dataKey + "]" : dataKey;
+            resultString.push(typeof value === "object" ?
                 prepareParams(value, resKey) :
                 encodeURIComponent(resKey) + "=" + encodeURIComponent(resValue));
           }
@@ -103,30 +110,32 @@
 
       function scriptRequest(params, onSuccess, onError) {
         var url = params.url || window.location.origin,
-            data = params.data || {},
-            scriptOk = false,
-            callbackName = 'f'+String(Math.random()).slice(2);
+          data = params.data || {},
+          scriptOk = false,
+          callbackName = "f" + String(Math.random()).slice(2),
+          script = document.createElement("script");
 
-        url += ~url.indexOf('?') ? '&' : '?';
+
+        url += ~url.indexOf("?") ? "&" : "?";
         url += prepareParams(data);
-        url += '&callback=Lab.'+namespace+'.'+callbackName;
+        url += "&callback=Lab." + namespace + "." + callbackName;
 
-        baseObject[namespace][callbackName] = function(data) {
+        baseObject[namespace][callbackName] = function (data) {
           scriptOk = true;
           delete baseObject[namespace][callbackName];
           onSuccess(data);
         };
 
         function checkCallback() {
-          if (scriptOk) return;
+          if (scriptOk) {
+            return;
+          }
           delete baseObject[namespace][callbackName];
-          if (typeof onError === 'function') { onError(url); }
+          if (typeof onError === "function") { onError(url); }
         }
 
-        var script = document.createElement('script');
-
-        script.onreadystatechange = function() {
-          if (this.readyState == 'complete' || this.readyState == 'loaded'){
+        script.onreadystatechange = function () {
+          if (this.readyState === "complete" || this.readyState === "loaded") {
             this.onreadystatechange = null;
             setTimeout(checkCallback, 0);
           }
@@ -138,36 +147,39 @@
         document.body.appendChild(script);
       }
 
-      return scriptRequest
+      return scriptRequest;
     }
 
     baseObject.ajax = new AjaxRequest(namespace);
 
   }
 
-  function Lab () {
+  function Lab() {
 
     var context = this;
 
-    AjaxRequester(context, '__jsonpCallbacks');
+    ajaxRequester(context, "__jsonpCallbacks");
 
-    function initialize () {
+    function initialize() {
 
       var experiments = {};
 
       // checking url for forced experiments in format lab_site_experiment_[name]=[value]
-      function getForcedUrlExperiments () {
+      function getForcedUrlExperiments() {
         var result = {},
-          param, key, value, tmp,
+          param,
+          key,
+          value,
+          tmp,
           urlParams = window.location.search,
-          urlParamsArray = urlParams.slice(1, urlParams.length).split('&'),
+          urlParamsArray = urlParams.slice(1, urlParams.length).split("&"),
           li = urlParamsArray.length;
 
         while (li--) {
           param = urlParamsArray[li];
-          if (param.indexOf('lab_site_experiment_') !== -1) {
-            tmp = param.split('=');
-            key = tmp[0].replace(/^lab_site_experiment_/, '');
+          if (param.indexOf("lab_site_experiment_") !== -1) {
+            tmp = param.split("=");
+            key = tmp[0].replace(/^lab_site_experiment_/, "");
             value = tmp[1] || 0;
             result[key] = value;
           }
@@ -177,28 +189,29 @@
       }
 
       // First - start at dom ready
-      docReady(function() {
-        console.log("document is ready. Let's start magic");
+      docReady(function () {
+        var error;
+        // console.log("document is ready. Let's start magic");
         // prepare success callback
-        function successFunction (data) {
-          if (data && data.status === 'success' ) {
+        function successFunction(data) {
+          if (data && data.status === "success") {
             console.log(data);
           } else {
-            new Error ('Incorrect Laborant API key');
+            error = new Error("Incorrect Laborant API key");
           }
         }
 
         function errorFunction() {
-          new Error ('Could not check API key');
+          error = new Error("Could not check API key");
         }
 
         experiments = getForcedUrlExperiments();
 
         // get list of all experiments and its variants from server
         context.ajax({
-          url: 'http://localhost:3000/laborant',
+          url: "http://localhost:3000/laborant",
           data: {
-            apiKey: 'laborant_development_key',
+            apiKey: "laborant_development_key",
             experiments: experiments
           }
         }, successFunction, errorFunction);
@@ -219,7 +232,7 @@
     // (also need an assert mode, determine response-request formats and so on)
 
     context.hello = function () {
-      console.log('Hello from laborant!');
+      // console.log("Hello from laborant!");
       return true;
     };
 
@@ -227,6 +240,6 @@
 
   }
 
-  window.Lab = new Lab()
+  window.Lab = new Lab();
 
-})(window, document, docReady);
+}(window, document, docReady));
