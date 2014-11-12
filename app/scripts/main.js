@@ -1,7 +1,8 @@
+/*global require*/
+
 require.config({
     paths: {
-        jquery: '../bower_components/jquery/jquery'
-,
+        jquery: '../bower_components/jquery/jquery',
         bootstrap: 'vendor/bootstrap/bootstrap'
     },
     shim: {
