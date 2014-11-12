@@ -123,8 +123,11 @@
           callbackName = "f" + String(Math.random()).slice(2),
           script = document.createElement("script");
 
-
-        url += ~url.indexOf("?") ? "&" : "?";
+        if (url.indexOf("?") !== -1) {
+          url += "&";
+        } else {
+          url += "?";
+        }
         url += prepareParams(data);
         url += "&callback=Lab." + namespace + "." + callbackName;
 
@@ -227,6 +230,8 @@
       });
 
     }
+
+    context.experiments = {};
 
     context.hello = function () {
       console.log("Hello from laborant!");
