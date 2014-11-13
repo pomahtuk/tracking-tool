@@ -90,6 +90,8 @@
 (function (window, document, docReady) {
   "use strict";
 
+  var uber = this;
+
   function ajaxRequester(baseObject, namespace) {
 
     baseObject = baseObject || window;
@@ -170,7 +172,7 @@
     var context = this,
       serverUrl = "http://localhost:3000/laborant";
 
-    ajaxRequester(context, "__jsonpCallbacks");
+    ajaxRequester(uber, "__jsonpCallbacks");
 
     function initialize() {
 
@@ -221,7 +223,7 @@
         experiments = getForcedUrlExperiments();
 
         // get list of all experiments and its variants from server, handshake
-        context.ajax({
+        uber.ajax({
           url: serverUrl,
           data: {
             apiKey: "laborant_development_key",
@@ -243,7 +245,7 @@
 
     function track(type, param) {
       console.log(type, 'fake tracking');
-      context.ajax({
+      uber.ajax({
         url: serverUrl + "/" + type + "/" + param,
         data: {
           apiKey: "laborant_development_key"
