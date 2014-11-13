@@ -167,7 +167,8 @@
 
   function Lab() {
 
-    var context = this;
+    var context = this,
+      serverUrl = "http://localhost:3000/laborant";
 
     ajaxRequester(context, "__jsonpCallbacks");
 
@@ -221,7 +222,7 @@
 
         // get list of all experiments and its variants from server, handshake
         context.ajax({
-          url: "http://localhost:3000/laborant",
+          url: serverUrl,
           data: {
             apiKey: "laborant_development_key",
             experiments: experiments
@@ -231,7 +232,38 @@
 
     }
 
+    function trackSuccessFunction(data) {
+      console.info(data);
+    }
+
+    function trackErrorFunction() {
+      var error = new Error("Error sending tracking data to server");
+      // should we have some cache and retry?
+    }
+
+    function track(type, param) {
+      console.log(type, 'fake tracking');
+      context.ajax({
+        url: serverUrl + "/" + type + "/" + param,
+        data: {
+          apiKey: "laborant_development_key"
+        }
+      }, trackSuccessFunction, trackErrorFunction);
+    }
+
     context.experiments = {};
+
+    context.trackExperiment = function (experimentName) {
+      track('experiment', experimentName);
+    };
+
+    context.trackGoal = function (goalName) {
+      track('goal', goalName);
+    };
+
+    context.trackTarget = function (targetName) {
+      track('target', targetName);
+    };
 
     context.hello = function () {
       console.log("Hello from laborant!");
