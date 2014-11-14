@@ -92,12 +92,28 @@
 
   var uber = this;
 
+  /**
+   * modify baseObject and mount JSONP ajax request engine to namespace
+   * @param   {Object} [baseObject=window] object to modify, by default - window
+   * @param   {String} [namespace="ajax"]  namespace for requster functions
+   */
   function ajaxRequester(baseObject, namespace) {
 
     baseObject = baseObject || window;
+    namespace  = namespace  || "ajax";
 
+    /**
+     * Constructor function for ajaxRequester
+     * @returns {Function} actual request function
+     */
     function AjaxRequest() {
 
+      /**
+       * recursively prepare passed data object to GET requst params
+       * @param   {Object} data   current chunk of data
+       * @param   {String} prefix namespace prefix
+       * @returns {String} GET requst params string
+       */
       function prepareParams(data, prefix) {
         var resultString = [], value, resKey, resValue, dataKey;
 
@@ -118,6 +134,12 @@
 
       baseObject[namespace] = {};
 
+      /**
+       * Perform JSONP request
+       * @param {Object}   params    request params
+       * @param {Function} onSuccess success cllback, passing data
+       * @param {Function} onError   error callback, passing request params
+       */
       function scriptRequest(params, onSuccess, onError) {
         var url = params.url || window.location.origin,
           data = params.data || {},
@@ -136,7 +158,7 @@
         baseObject[namespace][callbackName] = function (data) {
           scriptOk = true;
           delete baseObject[namespace][callbackName];
-          onSuccess(data);
+          onSuccess(data, params);
         };
 
         function checkCallback() {
@@ -144,7 +166,7 @@
             return;
           }
           delete baseObject[namespace][callbackName];
-          if (typeof onError === "function") { onError(url); }
+          if (typeof onError === "function") { onError(params); }
         }
 
         script.onreadystatechange = function () {
@@ -170,7 +192,10 @@
   function Lab() {
 
     var context = this,
-      serverUrl = "http://localhost:3000/laborant";
+      serverUrl = "http://localhost:3000/laborant",
+      retryAttempts = 5,
+      retryDelay = 500,
+      track;
 
     ajaxRequester(uber, "__jsonpCallbacks");
 
@@ -238,20 +263,34 @@
       console.info(data);
     }
 
-    function trackErrorFunction() {
-      var error = new Error("Error sending tracking data to server");
-      // should we have some cache and retry?
+    function trackErrorFunction(params) {
+      params = params.tracking;
+      var error = new Error("Error sending tracking data to server, will retry");
+      // retry on error
+      if (params.attempts < retryAttempts) {
+        setTimeout(function () {
+          track(params.type, params.param, params.attempts + 1);
+        }, retryDelay);
+      } else {
+        error = new Error("giving up on this tracking, check connection and server status");
+      }
     }
 
-    function track(type, param) {
+    track = function (type, param, attempts) {
+      attempts = attempts || 1;
       console.log(type, 'fake tracking');
       uber.ajax({
         url: serverUrl + "/" + type + "/" + param,
+        tracking: {
+          type: type,
+          param: param,
+          attempts: attempts
+        },
         data: {
           apiKey: "laborant_development_key"
         }
       }, trackSuccessFunction, trackErrorFunction);
-    }
+    };
 
     context.experiments = {};
 
