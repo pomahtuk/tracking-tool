@@ -161,6 +161,9 @@
           onSuccess(data, params);
         };
 
+        /**
+         * Fires callbacks depending on request state
+         */
         function checkCallback() {
           if (scriptOk) {
             return;
@@ -199,11 +202,17 @@
 
     ajaxRequester(uber, "__jsonpCallbacks");
 
+    /**
+     * Laborant constructor
+     */
     function initialize() {
 
       var experiments = {};
 
-      // checking url for forced experiments in format lab_site_experiment_[name]=[value]
+      /**
+       * Checking url for forced experiments in format lab_site_experiment_[name]=[value]
+       * @returns {Object} data object with exeriment names and forced varaints
+       */
       function getForcedUrlExperiments() {
         var param, key, value, tmp,
           result = {},
@@ -227,7 +236,11 @@
       // First - start at dom ready
       docReady(function () {
         var error;
-        // prepare success callback
+
+        /**
+         * Succeess callback for server handshake
+         * @param {Object} data server response
+         */
         function successFunction(data) {
           if (data && data.status === "success") {
             console.log(data);
@@ -238,9 +251,13 @@
             // note: all experiment conditions should be set at backend? or not?
           } else {
             error = new Error("Incorrect Laborant API key");
+            // do notrhing! destroy object methods
           }
         }
 
+        /**
+         * Error callback for server handshake
+         */
         function errorFunction() {
           error = new Error("Could not check API key");
         }
@@ -259,10 +276,18 @@
 
     }
 
+    /**
+     * Success callback for all tracking inside of Laborant
+     * @param {Object} data response object from server
+     */
     function trackSuccessFunction(data) {
       console.info(data);
     }
 
+    /**
+     * Error callback for all tracking inside of Laborant, retry each tracking several times
+     * @param {Object} params Params of failed request
+     */
     function trackErrorFunction(params) {
       params = params.tracking;
       var error = new Error("Error sending tracking data to server, will retry");
@@ -276,6 +301,12 @@
       }
     }
 
+    /**
+     * Generic tracking function, event-type agnostic
+     * @param {String} type         type of tracked event
+     * @param {String} param        event identifier
+     * @param {Number} [attempts=1] current attempt number
+     */
     track = function (type, param, attempts) {
       attempts = attempts || 1;
       console.log(type, "fake tracking");
