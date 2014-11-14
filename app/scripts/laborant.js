@@ -306,11 +306,6 @@
       track("target", targetName);
     };
 
-    context.hello = function () {
-      console.log("Hello from laborant!");
-      return true;
-    };
-
     initialize();
 
   }
