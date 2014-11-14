@@ -278,7 +278,7 @@
 
     track = function (type, param, attempts) {
       attempts = attempts || 1;
-      console.log(type, 'fake tracking');
+      console.log(type, "fake tracking");
       uber.ajax({
         url: serverUrl + "/" + type + "/" + param,
         tracking: {
@@ -295,15 +295,15 @@
     context.experiments = {};
 
     context.trackExperiment = function (experimentName) {
-      track('experiment', experimentName);
+      track("experiment", experimentName);
     };
 
     context.trackGoal = function (goalName) {
-      track('goal', goalName);
+      track("goal", goalName);
     };
 
     context.trackTarget = function (targetName) {
-      track('target', targetName);
+      track("target", targetName);
     };
 
     context.hello = function () {
